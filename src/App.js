@@ -1,8 +1,10 @@
 import './styles/reset.css'
 import './styles/index.css'
 import { useState } from 'react'
-import { Inventory } from './components/Inventory'
-import { ShoppingList } from './components/ShoppingList'
+import { Store } from './components/header/Store'
+import { Cart } from './components/main/Cart'
+import { Total } from './components/main/Total'
+import { Footer } from './components/Footer/Footer'
 
 import initialStoreItems from './store-items'
 
@@ -16,87 +18,62 @@ export default function App() {
     if (findItem !== item) {
       const selectedItemsList = [...selectedItem, item]
       item.quantity = 1
-      totalCount()
       setSelectedItem(selectedItemsList)
-      console.log(selectedItem)
+      totalCount(item)
     }
-    totalCount()
     addToQuantity(item)
+    totalCount(item)
   }
 
   function addToQuantity(item) {
     const itemArray = [...selectedItem]
     const itemQuantity = itemArray.find(itemQ => itemQ === item)
     itemQuantity.quantity++
-    totalCount()
     setSelectedItem(itemArray)
+    totalCount(item)
   }
 
   function removeFromQuantity(item) {
     const itemArray = [...selectedItem]
     const itemQuantity = itemArray.find(itemQ => itemQ === item)
     if (item.quantity < 2) {
-      itemArray.splice(itemQuantity, 1)
+      for (let i = 0; i < itemArray.length; i++) {
+        if (itemArray[i] === item) {
+          itemArray.splice(i, 1)
+        }
+      }
+    } else {
+      itemQuantity.quantity--
     }
-    itemQuantity.quantity--
-    totalCount()
     setSelectedItem(itemArray)
+    totalCount(item)
   }
 
-  let totalPrice = 0
-  
-  function totalCount() {
-    let itemQuantity = 0
-    for (const itemP of selectedItem) {
-      itemQuantity = itemP.quantity + itemQuantity
-      totalPrice = itemP.price * itemQuantity + totalPrice
-      console.log(selectedItem)
+  function totalCount(item) {
+    let totalPrice = 0
+    const itemArray = [...selectedItem]
+    for (const items of itemArray) {
+      if (items !== item) {
+        totalPrice += item.price
+        setTotalSum(totalPrice.toFixed(2))
+      }
+      totalPrice = items.price * items.quantity + totalPrice
+      setTotalSum(totalPrice.toFixed(2))
     }
-    setTotalSum(totalPrice.toFixed(2))
-  
   }
 
   return (
     <>
-      <header id="store">
-        <h1>Greengrocers</h1>
-        <ul className="item-list store--item-list">
-          <Inventory itemsList={items} addToCart={addToCart} />
-        </ul>
-      </header>
+      <Store itemsList={items} addToCart={addToCart} />
       <main id="cart">
-        <h2>Your Cart</h2>
-        <div className="cart--item-list-container">
-          <ul className="item-list cart--item-list">
-            <ShoppingList
-              selectedItem={selectedItem}
-              addToQuantity={addToQuantity}
-              removeFromQuantity={removeFromQuantity}
-            />
-          </ul>
-        </div>
-        <div className="total-section">
-          <div>
-            <h3>Total</h3>
-          </div>
-          <div>
-            <span className="total-number">{`£${totalSum}`}</span>
-          </div>
-        </div>
+        <Cart
+          selectedItem={selectedItem}
+          addToQuantity={addToQuantity}
+          removeFromQuantity={removeFromQuantity}
+        />
+        <Total totalSum={totalSum} />
       </main>
-      <div>
-        Icons made by
-        <a
-          href="https://www.flaticon.com/authors/icongeek26"
-          title="Icongeek26"
-        >
-          Icongeek26
-        </a>
-        from
-        <a href="https://www.flaticon.com/" title="Flaticon">
-          www.flaticon.com
-        </a>
-      </div>
+      <Footer />
     </>
   )
 }
